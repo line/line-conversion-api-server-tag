@@ -7,7 +7,7 @@ Currently, only GA4 Client is supported, and in addition to the data automatical
 
 ## Installation & Usage
 
-The `line_conversion_api.tpl` that this repository contains in root directory is a template file for server side tagging.
+The `template.tpl` that this repository contains in root directory is a template file for server side tagging.
 You can download here and install it from Google Tag Manager.
 
 For detailed information, please check following resources.

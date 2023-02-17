@@ -6,6 +6,7 @@ ___INFO___
   "version": 1,
   "securityGroups": [],
   "displayName": "LINE Conversion API",
+  "categories": ["ADVERTISING", "ANALYTICS", "ATTRIBUTION", "CONVERSIONS", "MARKETING", "PERSONALIZATION", "REMARKETING"],
   "brand": {
     "id": "brand_dummy",
     "displayName": ""

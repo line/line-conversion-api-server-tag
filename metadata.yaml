@@ -1,5 +1,5 @@
 homepage: "https://data.linebiz.com/solutions/conversion-api"
 documentation: "https://conversion-api-docs.linebiz.com"
 versions:
-  - sha: 26d48f4800dfac1aaa6aac110ed9c029f1d8a3b3
+  - sha: a38a0c7c38fe77f38cf2ae28d982362be08e5864
     changeNotes: Initial support google gallery template.

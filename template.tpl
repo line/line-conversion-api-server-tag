@@ -5,6 +5,7 @@ Template Gallery Developer Terms of Service available at
 https://developers.google.com/tag-manager/gallery-tos (or such other URL as
 Google may provide), as modified from time to time.
 
+
 ___INFO___
 
 {
@@ -13,7 +14,15 @@ ___INFO___
   "version": 1,
   "securityGroups": [],
   "displayName": "LINE Conversion API",
-  "categories": ["ADVERTISING", "ANALYTICS", "ATTRIBUTION", "CONVERSIONS", "MARKETING", "PERSONALIZATION", "REMARKETING"],
+  "categories": [
+    "ADVERTISING",
+    "ANALYTICS",
+    "ATTRIBUTION",
+    "CONVERSIONS",
+    "MARKETING",
+    "PERSONALIZATION",
+    "REMARKETING"
+  ],
   "brand": {
     "id": "brand_dummy",
     "displayName": ""
@@ -148,6 +157,15 @@ const CLICK_ID_QUERY_NAME = "ldtag_cl";
 const CONTENT_TYPE_HEADER = "Content-Type";
 const CONTENT_TYPE_APPLICATION_JSON = "application/json";
 const HASHED_REGEX_PATTERN = "^[0-9a-fA-F]{64}$";
+const LINE_STANDARD_EVENTS = [
+  "ViewItemDetail",
+  "AddToCart",
+  "InitiateCheckOut",
+  "Purchase",
+  "GenerateLead",
+  "CompleteReservation",
+  "CompleteRegistration",
+];
 
 // HTTP Header Definitions
 const CONVERSION_API_ACCESS_TOKEN_HEADER = "X-Line-TagAccessToken";
@@ -232,6 +250,13 @@ requestBody.web.referrer = referrer;
 requestBody.web.ip_address = ipAddress;
 requestBody.web.user_agent = userAgent;
 
+// Custom Object (For standard event).
+if (isStandardEvent(eventName)) {
+  requestBody.custom = {};
+  requestBody.custom.value = eventData["x-line-event-value"];
+  requestBody.custom.currency = eventData["x-line-event-currency"];
+}
+
 // Send settings
 const endpoint = LINE_CONVERSION_API_ENDPOINT + "/" + lineTagId + "/events";
 const options = {};
@@ -314,6 +339,15 @@ function isInternalError(statusCode) {
   return statusCode >= 500 && statusCode < 600;
 }
 
+function isStandardEvent(eventName) {
+  for (let i = 0; i < LINE_STANDARD_EVENTS.length; ++i) {
+    if (LINE_STANDARD_EVENTS[i] === eventName) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function getEventName() {
   if (data.eventName) {
     return data.eventName;
@@ -321,7 +355,7 @@ function getEventName() {
   return eventData.event_name;
 }
 
-// Reference: TODO Compliant with Apache License 2.0
+// googlearchive/chrome-platform-analytics - Apache License 2.0
 // https://github.com/googlearchive/chrome-platform-analytics/blob/5c2c25079bdbc9ce125fb2eeb84ff6fa580e8d0c/src/internal/identifier.js#L44
 function generateUuid() {
   const template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".split("");
@@ -657,6 +691,30 @@ scenarios:
         assertApi('gtmOnSuccess').wasNotCalled();
         assertApi('gtmOnFailure').wasCalled();
       });
+- name: It should success that sending standard event with price and purchase
+  code: |-
+    mockData.eventName = 'Purchase';
+    mockEventData['x-line-event-value'] = 100;
+    mockEventData['x-line-event-currency'] = 'JPY';
+
+    runCode(mockData)
+      .then(() => {
+        requestValidator();
+        assertThat(resultRequests[0].custom.value).isEqualTo(100);
+        assertThat(resultRequests[0].custom.currency).isEqualTo('JPY');
+      })
+      .finally(() => {
+        assertApi("setCookie").wasCalledWith("__lt__cid", resultRequests[0].user.browser_id, {
+          domain: 'auto',
+          path: '/',
+          samesite: 'Lax',
+          secure: true,
+          'max-age': 63072000,
+          httpOnly: false
+        });
+        assertApi('gtmOnSuccess').wasCalled();
+        assertApi('gtmOnFailure').wasNotCalled();
+      });
 setup: "var logToConsole = require('logToConsole');\nvar Promise = require('Promise');\n\
   var JSON = require('JSON');\n\nconst mockData = {\n  event: 'page_view',\n  lineTagId:\
   \ '00000000-0000-0000-0000-000000000000',\n  eventName: undefined,\n  lineAccessToken:\
@@ -703,3 +761,5 @@ setup: "var logToConsole = require('logToConsole');\nvar Promise = require('Prom
 ___NOTES___
 
 Created on 2022/4/28 19:09:50
+
+

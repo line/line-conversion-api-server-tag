@@ -22,6 +22,15 @@ module.exports = (data, require) => {
   const CONTENT_TYPE_HEADER = "Content-Type";
   const CONTENT_TYPE_APPLICATION_JSON = "application/json";
   const HASHED_REGEX_PATTERN = "^[0-9a-fA-F]{64}$";
+  const LINE_STANDARD_EVENTS = [
+    "ViewItemDetail",
+    "AddToCart",
+    "InitiateCheckOut",
+    "Purchase",
+    "GenerateLead",
+    "CompleteReservation",
+    "CompleteRegistration",
+  ];
 
   // HTTP Header Definitions
   const CONVERSION_API_ACCESS_TOKEN_HEADER = "X-Line-TagAccessToken";
@@ -106,6 +115,13 @@ module.exports = (data, require) => {
   requestBody.web.ip_address = ipAddress;
   requestBody.web.user_agent = userAgent;
 
+  // Custom Object (For standard event).
+  if (isStandardEvent(eventName)) {
+    requestBody.custom = {};
+    requestBody.custom.value = eventData["x-line-event-value"];
+    requestBody.custom.currency = eventData["x-line-event-currency"];
+  }
+
   // Send settings
   const endpoint = LINE_CONVERSION_API_ENDPOINT + "/" + lineTagId + "/events";
   const options = {};
@@ -186,6 +202,15 @@ module.exports = (data, require) => {
 
   function isInternalError(statusCode) {
     return statusCode >= 500 && statusCode < 600;
+  }
+
+  function isStandardEvent(eventName) {
+    for (let i = 0; i < LINE_STANDARD_EVENTS.length; ++i) {
+      if (LINE_STANDARD_EVENTS[i] === eventName) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function getEventName() {

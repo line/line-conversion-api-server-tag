@@ -3,3 +3,5 @@ documentation: "https://conversion-api-docs.linebiz.com"
 versions:
   - sha: a38a0c7c38fe77f38cf2ae28d982362be08e5864
     changeNotes: Initial support google gallery template.
+  - sha: f77c8360b481ce0107664f0d448f2a369643a44c
+    changeNotes: Support LINE Standard Event.

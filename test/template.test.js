@@ -629,4 +629,70 @@ describe("test", () => {
     successAssertion.never();
     failureAssertion.once();
   });
+
+  it("can also send value and currency when sending Standard Event", async () => {
+    const successAssertion = getCallAssertion();
+    const failureAssertion = getCallAssertion();
+    await template(
+      {
+        event: "conversion",
+        lineTagId: "00000000-0000-0000-0000-000000000000",
+        lineAccessToken: "dummyAccessToken",
+        lineChannelId: undefined,
+        enableCookie: true,
+        gtmOnSuccess: () => {
+          successAssertion.call();
+        },
+        gtmOnFailure: () => {
+          failureAssertion.call();
+        },
+      },
+      (packageName) => {
+        if (packageName === "getAllEventData") {
+          return () => {
+            const base = requireFunctionBase[packageName]();
+            base.event_name = "Purchase";
+            base["x-line-event-value"] = 1000;
+            base["x-line-event-currency"] = "JPY";
+            return base;
+          };
+        } else if (packageName === "sendHttpRequest") {
+          return (url, options, postBody) => {
+            expect(postBody).not.to.be.null;
+            const requests = JSON.parse(postBody);
+
+            expect(url).to.be.eq(
+              "https://conversion-api.tr.line.me/v1/00000000-0000-0000-0000-000000000000/events"
+            );
+
+            expect(options.method).to.be.eq("POST");
+            expect(options.headers["X-Line-TagAccessToken"]).to.be.eq(
+              "dummyAccessToken"
+            );
+            expect(options.headers["X-Line-ChannelID"]).to.be.undefined;
+
+            expect(requests).length(1);
+            expect(requests[0].event.source_type).to.be.eq("web");
+            expect(requests[0].event.event_type).to.be.eq("conversion");
+            expect(requests[0].event.event_name).to.be.eq("Purchase");
+
+            expect(requests[0].custom.value).to.be.eq(1000);
+            expect(requests[0].custom.currency).to.be.eq("JPY");
+
+            return new Promise((resolve) => {
+              resolve({
+                statusCode: 202,
+                body: undefined,
+                headers: [],
+              });
+            });
+          };
+        }
+        return requireFunctionBase[packageName];
+      }
+    );
+
+    successAssertion.once();
+    failureAssertion.never();
+  });
 });

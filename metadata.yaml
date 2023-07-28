@@ -5,3 +5,5 @@ versions:
     changeNotes: Initial support google gallery template.
   - sha: f77c8360b481ce0107664f0d448f2a369643a44c
     changeNotes: Support LINE Standard Event.
+  - sha: 99143fdc32a56ecbcf5c5e2bbd15c76563f37aff
+    changeNotes: Support LINE Conversion API test flag.

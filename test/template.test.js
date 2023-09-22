@@ -128,6 +128,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: "dummyChannelId",
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -176,6 +177,7 @@ describe("test", () => {
               Date.now() / 1000,
               10
             );
+            expect(requests[0].event.test_flag).to.be.false;
 
             expect(requests[0].user.click_id).to.be.undefined;
             expect(requests[0].user.browser_id).to.be.matches(
@@ -229,6 +231,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -302,6 +305,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -374,6 +378,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -426,6 +431,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -481,6 +487,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -519,6 +526,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -570,6 +578,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: false,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -603,6 +612,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -640,6 +650,7 @@ describe("test", () => {
         lineAccessToken: "dummyAccessToken",
         lineChannelId: undefined,
         enableCookie: true,
+        testFlag: false,
         gtmOnSuccess: () => {
           successAssertion.call();
         },
@@ -694,5 +705,64 @@ describe("test", () => {
 
     successAssertion.once();
     failureAssertion.never();
+  });
+
+  it("should succeed that test_flag is set to true", async () => {
+    const successAssertion = getCallAssertion();
+    const failureAssertion = getCallAssertion();
+    const cookieBakeAssertion = getCallAssertion();
+    await template(
+      {
+        event: "conversion",
+        lineTagId: "00000000-0000-0000-0000-000000000000",
+        eventName: undefined,
+        lineAccessToken: "dummyAccessToken",
+        lineChannelId: undefined,
+        enableCookie: true,
+        testFlag: true,
+        gtmOnSuccess: () => {
+          successAssertion.call();
+        },
+        gtmOnFailure: () => {
+          failureAssertion.call();
+        },
+      },
+      (packageName) => {
+        if (packageName === "sendHttpRequest") {
+          return (url, options, postBody) => {
+            expect(postBody).not.to.be.null;
+            const requests = JSON.parse(postBody);
+
+            expect(url).to.be.eq(
+              "https://conversion-api.tr.line.me/v1/00000000-0000-0000-0000-000000000000/events"
+            );
+
+            expect(options.method).to.be.eq("POST");
+            expect(options.headers["X-Line-TagAccessToken"]).to.be.eq(
+              "dummyAccessToken"
+            );
+
+            expect(requests).length(1);
+            expect(requests[0].event.source_type).to.be.eq("web");
+            expect(requests[0].event.event_type).to.be.eq("conversion");
+            expect(requests[0].event.event_name).to.be.eq("Conversion");
+            expect(requests[0].event.test_flag).to.be.true;
+
+            return new Promise((resolve) => {
+              resolve({
+                statusCode: 202,
+                body: undefined,
+                headers: [],
+              });
+            });
+          };
+        }
+        return requireFunctionBase[packageName];
+      }
+    );
+
+    successAssertion.once();
+    failureAssertion.never();
+    cookieBakeAssertion.never();
   });
 });

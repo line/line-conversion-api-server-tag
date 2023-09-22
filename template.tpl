@@ -127,6 +127,13 @@ ___TEMPLATE_PARAMETERS___
     "checkboxText": "Enable measurement using cookies",
     "simpleValueType": true,
     "help": "Please enable this checkbox if you want to read/update the first-party cookie `__lt__cid` for measurement with the LINE Tag. This enables server side tag to measure conversions with the first-party cookie in the Conversion API."
+  },
+  {
+    "type": "CHECKBOX",
+    "name": "testFlag",
+    "checkboxText": "Enable testing Conversion API Event",
+    "simpleValueType": true,
+    "help": "Please enable this checkbox if you want to enable testing Conversion API Event. Events sent with this flag enabled will not be used for accumulation to audiences/reporting/ad delivery optimization and will only be used for testing purposes."
   }
 ]
 
@@ -195,6 +202,7 @@ const lineTagId = data.lineTagId;
 const accessToken = data.lineAccessToken;
 const channelId = data.lineChannelId;
 const enableCookie = data.enableCookie;
+const testFlag = data.testFlag;
 const url = eventData.page_location;
 const lineClickId = url ? getLineClickId(parseUrl(url)) : undefined;
 const browserId =
@@ -231,6 +239,7 @@ requestBody.event.event_name =
   eventType === "conversion" ? eventName : undefined;
 requestBody.event.deduplication_key = dedupe;
 requestBody.event.event_timestamp = timestampSec;
+requestBody.event.test_flag = testFlag;
 
 // User Object
 requestBody.user = {};

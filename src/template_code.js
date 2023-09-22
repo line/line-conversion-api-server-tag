@@ -60,6 +60,7 @@ module.exports = (data, require) => {
   const accessToken = data.lineAccessToken;
   const channelId = data.lineChannelId;
   const enableCookie = data.enableCookie;
+  const testFlag = data.testFlag;
   const url = eventData.page_location;
   const lineClickId = url ? getLineClickId(parseUrl(url)) : undefined;
   const browserId =
@@ -96,6 +97,7 @@ module.exports = (data, require) => {
     eventType === "conversion" ? eventName : undefined;
   requestBody.event.deduplication_key = dedupe;
   requestBody.event.event_timestamp = timestampSec;
+  requestBody.event.test_flag = testFlag;
 
   // User Object
   requestBody.user = {};
